@@ -1,4 +1,4 @@
-  import { compareSync } from "bcrypt-ts-edge"
+  import { compare } from './lib/encrypt';
   import type { NextAuthConfig } from "next-auth"
   import NextAuth from "next-auth"
   import CredentialsProvider from "next-auth/providers/credentials"
@@ -37,10 +37,10 @@
           })
           // Check if user exists and password is correct
           if (user && user.password) {
-            const isMatch = compareSync(
+            const isMatch = await compare(
               credentials.password as string,
               user.password
-            )
+            );
             // If password is correct, return user object
             if (isMatch) {
               return {
