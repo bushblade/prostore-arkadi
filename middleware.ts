@@ -1,9 +1,9 @@
-import { auth } from "@/auth"
+import { getToken } from "next-auth/jwt"
 import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-export default auth((req) => {
-  const isLoggedIn = req.auth
-  const currentPath = req.nextUrl.pathname
+export async function middleware(req: NextRequest) {
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
 
   // Define protected paths
   const protectedPaths = [
@@ -16,18 +16,19 @@ export default auth((req) => {
     /\/admin/,
   ]
 
+  const { pathname } = req.nextUrl
   // Check if the current path matches any of the protected paths
-  const isProtectedPath = protectedPaths.some((path) => path.test(currentPath))
+  const isProtectedPath = protectedPaths.some((path) => path.test(pathname))
 
   // Redirect unauthenticated users trying to access protected paths
-  if (isProtectedPath && !isLoggedIn) {
+  if (isProtectedPath && !token) {
     const newUrl = new URL("/sign-in", req.nextUrl.origin)
     return NextResponse.redirect(newUrl)
   }
 
   // Allow all other requests to proceed
   return NextResponse.next()
-})
+}
 
 export const config = {
   matcher: [
